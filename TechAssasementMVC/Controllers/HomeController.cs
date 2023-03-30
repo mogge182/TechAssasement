@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using TechAssasementMVC.Enums;
 using TechAssasementMVC.Models;
 using TechAssasementMVC.Repositories;
 
@@ -18,10 +19,7 @@ namespace TechAssasementMVC.Controllers
 		public IActionResult Index()
 		{
 			var stats = _weatherRepository.GetWeatherStats();
-			if (stats == null)
-			{
-				return View();
-			}
+
 			return View(stats);
 		}
 
@@ -37,10 +35,18 @@ namespace TechAssasementMVC.Controllers
 		}
 
 
-		public IActionResult GetData(int locationId, int type)
+		public IActionResult GetData(int locationId, GraphType type)
 		{
-			var graphData = _weatherRepository.GetWindGraph(locationId);
-			return Ok(graphData);
+
+			switch (type)
+			{
+				case GraphType.Temperatur:
+					return Ok(_weatherRepository.GetTempGraph(locationId));
+				case GraphType.Wind:
+					return Ok(_weatherRepository.GetWindGraph(locationId));
+				default:
+					return BadRequest();
+			}
 		}
 	}
 }

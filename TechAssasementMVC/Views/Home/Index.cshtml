@@ -19,7 +19,7 @@
 	const chart = new Chart(ctx, {
 		type: 'bar',
 		data: {
-			labels: data.map(d => d.city.replace(/_/g, ' ') + '\n' + d.lastUpdateTime),
+			labels: data.map(d => CleanText(d.country) + '\n' + CleanText(d.city) + '\n' + 'Last update: ' + d.lastUpdateTime),
 			datasets: [
 				{
 					label: 'Min Temp',
@@ -38,36 +38,45 @@
 			]
 		},
 		options: {
+			scales: {
+				x: {
+					ticks: {
+						display: false
+					}
+				}
+			},
 			onClick: function (event, elements) {
 
 				if (elements[0]) {
 
 					const locationId = data[elements[0].index].locationId;
-					const type = elements[0].datasetIndex; //0 = min temp, 1 = Windspeed
+					const type = elements[0].datasetIndex;
 
-					$.ajax({
-						url: 'home/getdata',
-						type: 'POST',
-						data: { locationId: locationId, type: type },
-						success: function (result) {
+					$.ajax(
+						{
+							url: 'home/getdata',
+							type: 'POST',
+							data: { locationId: locationId, type: type },
+							success: function (result) {
 
-							console.log(result);
+								console.log(result);
 
-							lineChart.data.labels = result.map(h => h.time);
-							lineChart.data.label = 'label';
-							lineChart.data.datasets[0].data = result.map(d => d.value);
-							lineChart.data.datasets[0].borderWidth = 1;
-							lineChart.update();
+								lineChart.data.labels = result.graphData.map(h => h.time + '\n' + CleanText(result.country) + '\n' + CleanText(result.city) + '\n' + 'Last update: ');
+								lineChart.data.datasets[0].label = CleanText(result.label);
+								lineChart.data.datasets[0].data = result.graphData.map(d => d.value);
+								lineChart.data.datasets[0].borderWidth = 1;
+								lineChart.update();
 
-							chartCanvas.removeAttribute('hidden');
-						},
-						error: function (xhr, status, error) {
-							console.error(error);
-						}
-					});
+								chartCanvas.removeAttribute('hidden');
+							},
+							error: function (xhr, status, error) {
+								console.error(error);
+							}
+						});
 				}
 			}
 		}
+
 	});
 
 	var chartCanvas = document.getElementById('lineChart');
@@ -82,35 +91,19 @@
 				borderColor: 'blue',
 				fill: false
 			}]
-		}
-	});
-
-	const chartOptions = {
-		scales: {
-			xAxes: [{
-				ticks: {
-					autoSkip: false,
-					maxRotation: 90,
-					minRotation: 90
-				}
-			}],
-			yAxes: [{
-				ticks: {
-					beginAtZero: true
-				}
-			}]
 		},
-		tooltips: {
-			mode: 'index',
-			intersect: false,
-			callbacks: {
-				label: function (tooltipItem, data) {
-					var label = data.labels[tooltipItem.index] + ': ';
-					label += tooltipItem.yLabel;
-					return label;
+		options: {
+			scales: {
+				x: {
+					ticks: {
+						display: false
+					}
 				}
 			}
 		}
-	};
+	});
 
+	function CleanText(text) {
+		return text.replace(/_/g, ' ');
+	}
 </script>

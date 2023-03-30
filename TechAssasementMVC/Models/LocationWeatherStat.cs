@@ -9,7 +9,5 @@
 		public float HighestWindSpeed { get; set; }
 		public DateTime LastUpdateTime { get; set; }
 
-		public ChartData ChartData { get; set; }
-
 	}
 }
