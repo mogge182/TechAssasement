@@ -1,0 +1,116 @@
+﻿@model IEnumerable<LocationWeatherStat>
+
+@{
+	ViewData["Title"] = "TechAssasement";
+}
+
+<div>
+	<canvas id="barChart"></canvas>
+	<canvas id="lineChart" hidden></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+	const ctx = document.getElementById('barChart');
+
+	var data = @Html.Raw(Json.Serialize(Model));
+
+	const chart = new Chart(ctx, {
+		type: 'bar',
+		data: {
+			labels: data.map(d => d.city.replace(/_/g, ' ') + '\n' + d.lastUpdateTime),
+			datasets: [
+				{
+					label: 'Min Temp',
+					data: data.map(d => d.minTemperature),
+					backgroundColor: 'rgba(65, 105, 225, 0.5)',
+					borderColor: 'rgba(0, 119, 190, 1)',
+					borderWidth: 1
+				},
+				{
+					label: 'Windspeed',
+					data: data.map(d => d.highestWindSpeed),
+					backgroundColor: 'rgba(144, 238, 144, 0.5)',
+					borderColor: 'rgba(124, 252, 0, 1)',
+					borderWidth: 1
+				}
+			]
+		},
+		options: {
+			onClick: function (event, elements) {
+
+				if (elements[0]) {
+
+					const locationId = data[elements[0].index].locationId;
+					const type = elements[0].datasetIndex; //0 = min temp, 1 = Windspeed
+
+					$.ajax({
+						url: 'home/getdata',
+						type: 'POST',
+						data: { locationId: locationId, type: type },
+						success: function (result) {
+
+							console.log(result);
+
+							lineChart.data.labels = result.map(h => h.time);
+							lineChart.data.label = 'label';
+							lineChart.data.datasets[0].data = result.map(d => d.value);
+							lineChart.data.datasets[0].borderWidth = 1;
+							lineChart.update();
+
+							chartCanvas.removeAttribute('hidden');
+						},
+						error: function (xhr, status, error) {
+							console.error(error);
+						}
+					});
+				}
+			}
+		}
+	});
+
+	var chartCanvas = document.getElementById('lineChart');
+
+	const lineChart = new Chart(chartCanvas, {
+		type: 'line',
+		data: {
+			labels: [],
+			datasets: [{
+				label: '',
+				data: [],
+				borderColor: 'blue',
+				fill: false
+			}]
+		}
+	});
+
+	const chartOptions = {
+		scales: {
+			xAxes: [{
+				ticks: {
+					autoSkip: false,
+					maxRotation: 90,
+					minRotation: 90
+				}
+			}],
+			yAxes: [{
+				ticks: {
+					beginAtZero: true
+				}
+			}]
+		},
+		tooltips: {
+			mode: 'index',
+			intersect: false,
+			callbacks: {
+				label: function (tooltipItem, data) {
+					var label = data.labels[tooltipItem.index] + ': ';
+					label += tooltipItem.yLabel;
+					return label;
+				}
+			}
+		}
+	};
+
+</script>
