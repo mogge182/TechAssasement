@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LocationWeatherStat>
+﻿@model ChartData
 
 @{
 	ViewData["Title"] = "TechAssasement";
@@ -15,27 +15,12 @@
 	const ctx = document.getElementById('barChart');
 
 	var data = @Html.Raw(Json.Serialize(Model));
-
+	console.log(data);
 	const chart = new Chart(ctx, {
 		type: 'bar',
 		data: {
-			labels: data.map(d => CleanText(d.country) + '\n' + CleanText(d.city) + '\n' + 'Last update: ' + d.lastUpdateTime),
-			datasets: [
-				{
-					label: 'Min Temp',
-					data: data.map(d => d.minTemperature),
-					backgroundColor: 'rgba(65, 105, 225, 0.5)',
-					borderColor: 'rgba(0, 119, 190, 1)',
-					borderWidth: 1
-				},
-				{
-					label: 'Windspeed',
-					data: data.map(d => d.highestWindSpeed),
-					backgroundColor: 'rgba(144, 238, 144, 0.5)',
-					borderColor: 'rgba(124, 252, 0, 1)',
-					borderWidth: 1
-				}
-			]
+			labels: data.locations.map(x => CleanText(x.country) + '\n' + CleanText(x.city) + '\n' + 'Last update: ' + x.latestUpdate),
+			datasets: data.datasets
 		},
 		options: {
 			scales: {
@@ -46,37 +31,35 @@
 				}
 			},
 			onClick: function (event, elements) {
-
 				if (elements[0]) {
 
-					const locationId = data[elements[0].index].locationId;
+					console.log(elements[0])
+
+					const locationId = data.locations[elements[0].index].id;
 					const type = elements[0].datasetIndex;
 
-					$.ajax(
-						{
-							url: 'home/getdata',
-							type: 'POST',
-							data: { locationId: locationId, type: type },
-							success: function (result) {
+					$.ajax({
+						url: 'home/getdata',
+						type: 'POST',
+						data: { locationId: locationId, type: type },
+						success: function (result) {
+							console.log(result);
 
-								console.log(result);
+							lineChart.data.labels = result.graphData.map(h => CleanText(result.country) + '\n' + CleanText(result.city) + '\n' + 'Time: ' + h.time + '\n' + 'Last update: ' + result.latestUpDateTime);
+							lineChart.data.datasets[0].label = CleanText(result.label);
+							lineChart.data.datasets[0].data = result.graphData.map(d => d.value);
+							lineChart.data.datasets[0].borderWidth = 1;
+							lineChart.update();
 
-								lineChart.data.labels = result.graphData.map(h => h.time + '\n' + CleanText(result.country) + '\n' + CleanText(result.city) + '\n' + 'Last update: ');
-								lineChart.data.datasets[0].label = CleanText(result.label);
-								lineChart.data.datasets[0].data = result.graphData.map(d => d.value);
-								lineChart.data.datasets[0].borderWidth = 1;
-								lineChart.update();
-
-								chartCanvas.removeAttribute('hidden');
-							},
-							error: function (xhr, status, error) {
-								console.error(error);
-							}
-						});
+							chartCanvas.removeAttribute('hidden');
+						},
+						error: function (xhr, status, error) {
+							console.error(error);
+						}
+					});
 				}
 			}
 		}
-
 	});
 
 	var chartCanvas = document.getElementById('lineChart');

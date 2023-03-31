@@ -1,13 +1,11 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.Options;
-using Quartz;
+﻿using Quartz;
+using System.Text.Json;
 using TechAssasementMVC.Database;
 using TechAssasementMVC.Dtos;
-using TechAssasementMVC.Models;
 
 namespace TechAssasementMVC.Job
 {
-    public class WeatherDataJob : IJob
+	public class WeatherDataJob : IJob
     {
         private readonly WeatherContext _weatherContext;
         private readonly HttpClient _httpClient;

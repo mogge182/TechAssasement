@@ -6,6 +6,7 @@
 		public string Country { get; set; }
 		public string City { get; set; }
 		public string Label { get; set; }
+        public DateTime LatestUpDateTime { get; set; }
 		public IEnumerable<GraphData> GraphData { get; set; }
 	}
 

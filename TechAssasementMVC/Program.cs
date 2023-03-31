@@ -1,10 +1,8 @@
-using System.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using Quartz.Spi;
 using TechAssasementMVC.Database;
 using TechAssasementMVC.Job;
-using TechAssasementMVC.Models;
 using TechAssasementMVC.Repositories;
 
 namespace TechAssasementMVC
